@@ -1,0 +1,37 @@
+import { render } from 'lit-html';
+import { Router } from 'app/lib/router.js';
+import { Header } from 'app/components/Header.js';
+import { Feed } from 'app/components/Feed.js';
+import { Profile } from 'app/components/Profile.js';
+import { PostView } from 'app/components/PostView.js';
+
+const appEl = document.getElementById('app');
+const mainEl = document.createElement('main');
+
+const routes = {
+    '/': Feed,
+    '/profile/:username': Profile,
+    '/post/:projectId': PostView,
+};
+
+const router = new Router(routes);
+
+async function renderContent() {
+    const { component, params } = router.match(location.hash.slice(1));
+    if (component) {
+        render(await component(params), mainEl);
+    } else {
+        render(Feed(), mainEl); // Fallback to feed
+    }
+}
+
+async function init() {
+    render(await Header(), appEl);
+    appEl.appendChild(mainEl);
+
+    window.addEventListener('hashchange', renderContent);
+    renderContent(); // Initial render
+}
+
+init();
+
