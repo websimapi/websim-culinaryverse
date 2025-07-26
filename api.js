@@ -1,7 +1,7 @@
 const API_BASE = '/api/v1';
 
 export async function getCurrentUser() {
-    return window.websim.getMe();
+    return window.websim.getUser();
 }
 
 export async function getUser(username) {
@@ -92,4 +92,3 @@ export async function giveStars(fromUserId, toUserId, amount) {
     
     return { success: true, newBalance: fromBalance - amount };
 }
-
