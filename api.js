@@ -62,6 +62,10 @@ async function getStarKey(userId) {
 
 export async function getStarBalance(userId) {
     if (!userId) return 0;
+    if (!window.websim?.db) {
+        console.warn('websim.db not available, stars functionality will be disabled.');
+        return 0;
+    }
     const key = await getStarKey(userId);
     let balance = await window.websim.db.get(key);
     if (balance === null) {
@@ -74,6 +78,11 @@ export async function getStarBalance(userId) {
 export async function giveStars(fromUserId, toUserId, amount) {
     if (!fromUserId || !toUserId || fromUserId === toUserId || amount <= 0) {
         return { success: false, message: 'Invalid transaction.' };
+    }
+
+    if (!window.websim?.db) {
+        console.warn('websim.db not available, stars functionality will be disabled.');
+        return { success: false, message: 'Database not available.' };
     }
 
     const fromKey = await getStarKey(fromUserId);
