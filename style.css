@@ -342,3 +342,14 @@ input[type="number"] {
     resize: vertical;
     min-height: 200px;
 }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .header-logo {
+        display: none;
+    }
+
+    .header {
+        padding: 1rem;
+    }
+}

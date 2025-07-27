@@ -72,7 +72,7 @@ export function PostCard(post, author, isCompact = false) {
     return html`
         <div class="post-card" @click=${() => navigateToPost(post.id)}>
             ${!isCompact ? authorTemplate : ''}
-            <img class="post-card-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}">
+            <img class="post-card-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}" .onerror=${(e) => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}>
             <div class="post-card-content">
                 <h2>${post.title || 'Untitled Post'}</h2>
                 <p>${post.description?.substring(0, 100) || ''}${post.description?.length > 100 ? '...' : ''}</p>

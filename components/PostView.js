@@ -18,9 +18,8 @@ export async function PostView({ postId }) {
             <div class="post-view-author">
                 ${post.created_by ? html`By <a href="#/profile/${post.created_by.username}">@${post.created_by.username}</a>` : 'By an unknown user'}
             </div>
-            <img class="post-view-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}">
+            <img class="post-view-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}" .onerror=${(e) => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}>
             <div class="post-view-body">${unsafeHTML(postBodyHtml)}</div>
         </div>
     `;
 }
-
