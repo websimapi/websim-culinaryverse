@@ -4,6 +4,7 @@ import { Header } from 'app/components/Header.js';
 import { Feed } from 'app/components/Feed.js';
 import { Profile } from 'app/components/Profile.js';
 import { PostView } from 'app/components/PostView.js';
+import { CreatePost } from 'app/components/CreatePost.js';
 
 const appEl = document.getElementById('app');
 const mainEl = document.createElement('main');
@@ -11,7 +12,8 @@ const mainEl = document.createElement('main');
 const routes = {
     '/': Feed,
     '/profile/:username': Profile,
-    '/post/:projectId': PostView,
+    '/post/:postId': PostView,
+    '/create': CreatePost,
 };
 
 const router = new Router(routes);
@@ -34,4 +36,3 @@ async function init() {
 }
 
 init();
-

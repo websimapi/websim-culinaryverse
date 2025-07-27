@@ -2,8 +2,8 @@ import { html, render } from 'lit-html';
 import { getCurrentUser, giveStars } from 'app/api.js';
 import { refreshHeaderBalance } from 'app/components/Header.js';
 
-const navigateToPost = (projectId) => {
-    window.location.hash = `/post/${projectId}`;
+const navigateToPost = (postId) => {
+    window.location.hash = `/post/${postId}`;
 };
 
 const TipModal = (author) => {
@@ -72,7 +72,7 @@ export function PostCard(post, author, isCompact = false) {
     return html`
         <div class="post-card" @click=${() => navigateToPost(post.id)}>
             ${!isCompact ? authorTemplate : ''}
-            <img class="post-card-image" src="${post.thumbnail?.url || 'https://images.websim.com/v1/project/' + post.id + '/thumbnail/600'}" alt="${post.title}">
+            <img class="post-card-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}">
             <div class="post-card-content">
                 <h2>${post.title || 'Untitled Post'}</h2>
                 <p>${post.description?.substring(0, 100) || ''}${post.description?.length > 100 ? '...' : ''}</p>
@@ -81,4 +81,3 @@ export function PostCard(post, author, isCompact = false) {
         </div>
     `;
 }
-

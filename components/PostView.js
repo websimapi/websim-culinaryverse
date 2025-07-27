@@ -1,9 +1,9 @@
 import { html } from 'lit-html';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
-import { getProjectDetails } from 'app/api.js';
+import { getPostDetails } from 'app/api.js';
 
-export async function PostView({ projectId }) {
-    const post = await getProjectDetails(projectId);
+export async function PostView({ postId }) {
+    const post = await getPostDetails(postId);
     const converter = new showdown.Converter();
 
     if (!post) {
@@ -18,7 +18,7 @@ export async function PostView({ projectId }) {
             <div class="post-view-author">
                 ${post.created_by ? html`By <a href="#/profile/${post.created_by.username}">@${post.created_by.username}</a>` : 'By an unknown user'}
             </div>
-            <img class="post-view-image" src="${post.thumbnail?.url || 'https://images.websim.com/v1/project/' + post.id + '/thumbnail/600'}" alt="${post.title}">
+            <img class="post-view-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}">
             <div class="post-view-body">${unsafeHTML(postBodyHtml)}</div>
         </div>
     `;

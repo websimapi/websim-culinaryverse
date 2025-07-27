@@ -23,6 +23,7 @@ const HeaderTemplate = () => html`
     <a href="#/" class="header-logo">CulinaryVerse</a>
     <nav class="header-nav">
         <a href="#/">Home</a>
+        ${currentUser ? html`<a href="#/create">Create Post</a>` : ''}
         ${currentUser ? html`<a href="#/profile/${currentUser.username}">My Profile</a>` : ''}
     </nav>
     <div class="user-info">
@@ -55,4 +56,3 @@ export async function Header() {
 
     return headerEl;
 }
-
