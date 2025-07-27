@@ -106,8 +106,8 @@ export async function createPost(postData) {
 const STARTER_STARS = 100;
 
 async function ensureUserBalance(userId) {
-    const existing = await room.collection('star_balances_v1').get(userId).catch(() => null);
-    if (!existing) {
+    const existing = await room.collection('star_balances_v1').filter({ id: userId }).getList();
+    if (existing.length === 0) {
         await room.collection('star_balances_v1').upsert({
             id: userId,
             balance: STARTER_STARS
@@ -119,8 +119,8 @@ export async function getStarBalance(userId) {
     if (!userId) return 0;
     
     await ensureUserBalance(userId);
-    const balanceRecord = await room.collection('star_balances_v1').get(userId);
-    return balanceRecord.balance;
+    const balanceRecords = await room.collection('star_balances_v1').filter({ id: userId }).getList();
+    return balanceRecords.length > 0 ? balanceRecords[0].balance : 0;
 }
 
 export async function giveStars(fromUserId, toUserId, amount) {
@@ -131,13 +131,15 @@ export async function giveStars(fromUserId, toUserId, amount) {
     await ensureUserBalance(fromUserId);
     await ensureUserBalance(toUserId);
 
-    const fromBalanceRecord = await room.collection('star_balances_v1').get(fromUserId);
+    const fromBalanceRecords = await room.collection('star_balances_v1').filter({ id: fromUserId }).getList();
+    const fromBalanceRecord = fromBalanceRecords[0];
 
     if (fromBalanceRecord.balance < amount) {
         return { success: false, message: 'Not enough stars.' };
     }
     
-    const toBalanceRecord = await room.collection('star_balances_v1').get(toUserId);
+    const toBalanceRecords = await room.collection('star_balances_v1').filter({ id: toUserId }).getList();
+    const toBalanceRecord = toBalanceRecords[0];
 
     await room.collection('star_balances_v1').upsert({
         id: fromUserId,
