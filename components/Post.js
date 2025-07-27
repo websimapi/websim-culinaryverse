@@ -1,12 +1,12 @@
 import { html, render } from 'lit-html';
-import { getCurrentUser, giveStars, getUser } from 'app/api.js';
+import { getCurrentUser, giveStars } from 'app/api.js';
 import { refreshHeaderBalance } from 'app/components/Header.js';
 
 const navigateToPost = (postId) => {
     window.location.hash = `/post/${postId}`;
 };
 
-const TipModal = (authorUsername) => {
+const TipModal = (author) => {
     let amount = 1;
 
     const close = () => document.body.removeChild(document.querySelector('.modal-overlay'));
@@ -19,9 +19,9 @@ const TipModal = (authorUsername) => {
             return;
         }
         
-        const result = await giveStars(currentUser.username, authorUsername, amount);
+        const result = await giveStars(currentUser.id, author.id, amount);
         if (result.success) {
-            alert(`You tipped @${authorUsername} ${amount} star(s)!`);
+            alert(`You tipped ${author.username} ${amount} star(s)!`);
             window.dispatchEvent(new CustomEvent('stars-updated'));
             close();
         } else {
@@ -36,7 +36,7 @@ const TipModal = (authorUsername) => {
     const modal = html`
         <div class="modal-overlay" @click=${close}>
             <div class="modal-content" @click=${e => e.stopPropagation()}>
-                <h3>Tip @${authorUsername}</h3>
+                <h3>Tip @${author.username}</h3>
                 <p>Show your appreciation by tipping some stars!</p>
                 <input type="number" min="1" value="1" @input=${onInput}>
                 <div class="tip-actions">
@@ -52,19 +52,19 @@ const TipModal = (authorUsername) => {
     render(modal, container);
 };
 
-const handleTipClick = (e, authorUsername) => {
+const handleTipClick = (e, author) => {
     e.stopPropagation();
-    TipModal(authorUsername);
+    TipModal(author);
 };
 
-export function PostCard(post, isCompact = false) {
-    if (!post) return '';
+export function PostCard(post, author, isCompact = false) {
+    if (!post || !author) return '';
 
     const authorTemplate = html`
-        <a href="#/profile/${post.username}" @click=${e => e.stopPropagation()}>
+        <a href="#/profile/${author.username}" @click=${e => e.stopPropagation()}>
             <div class="post-card-author">
-                <img class="user-avatar" src="${`https://images.websim.com/avatar/${post.username}`}" alt="${post.username}">
-                <strong>@${post.username}</strong>
+                <img class="user-avatar" src="${author.avatar_url || `https://images.websim.com/avatar/${author.username}`}" alt="${author.username}">
+                <strong>@${author.username}</strong>
             </div>
         </a>
     `;
@@ -72,13 +72,12 @@ export function PostCard(post, isCompact = false) {
     return html`
         <div class="post-card" @click=${() => navigateToPost(post.id)}>
             ${!isCompact ? authorTemplate : ''}
-            ${post.imageUrl ? html`<img class="post-card-image" src="${post.imageUrl}" alt="${post.title}">` : ''}
+            <img class="post-card-image" src="${post.image_url || '/placeholder.png'}" alt="${post.title}">
             <div class="post-card-content">
                 <h2>${post.title || 'Untitled Post'}</h2>
-                <p>${post.content?.substring(0, 100) || ''}${post.content?.length > 100 ? '...' : ''}</p>
-                 <button @click=${(e) => handleTipClick(e, post.username)}>Tip Stars</button>
+                <p>${post.description?.substring(0, 100) || ''}${post.description?.length > 100 ? '...' : ''}</p>
+                 <button @click=${(e) => handleTipClick(e, author)}>Tip Stars</button>
             </div>
         </div>
     `;
 }
-

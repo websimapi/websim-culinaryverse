@@ -1,41 +1,18 @@
-import { html, render } from 'lit-html';
-import { getDBPosts } from 'app/api.js';
+import { html } from 'lit-html';
+import { getFeed } from 'app/api.js';
 import { PostCard } from 'app/components/Post.js';
 
-let posts = [];
+export async function Feed() {
+    const feedItems = await getFeed();
+    
+    if (!feedItems || feedItems.length === 0) {
+        return html`<div class="loader">No posts in the feed yet. Go create something!</div>`;
+    }
 
-function renderFeed(container) {
-    const template = html`
+    return html`
         <div class="feed-container">
-            ${posts.length > 0
-                ? posts.map(post => PostCard(post))
-                : html`<div class="loader">No posts in the feed yet. Go create something!</div>`
-            }
+            ${feedItems.map(item => PostCard(item.post, item.author))}
         </div>
     `;
-    render(template, container);
 }
 
-export function Feed() {
-    const container = document.createElement('div');
-
-    const unsubscribe = window.room.collection('post_v1').subscribe(newPosts => {
-        posts = newPosts.reverse();
-        renderFeed(container);
-    });
-
-    // Cleanup subscription when navigating away
-    // A bit of a hack for this simple router
-    const observer = new MutationObserver((mutations) => {
-        if (!document.body.contains(container)) {
-            unsubscribe();
-            observer.disconnect();
-        }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    posts = window.room.collection('post_v1').getList().reverse();
-    renderFeed(container);
-
-    return container;
-}

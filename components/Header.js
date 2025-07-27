@@ -6,7 +6,7 @@ let starBalance = 0;
 
 async function updateBalance() {
     if (currentUser) {
-        starBalance = await getStarBalance(currentUser.username); // Use username for consistency
+        starBalance = await getStarBalance(currentUser.id);
         const headerEl = document.querySelector('.header');
         if (headerEl) {
            render(HeaderTemplate(), headerEl);
@@ -22,9 +22,9 @@ export function refreshHeaderBalance() {
 const HeaderTemplate = () => html`
     <a href="#/" class="header-logo">CulinaryVerse</a>
     <nav class="header-nav">
-        <a href="#/">Home</a>
-        <a href="#/create">New Post</a>
-        ${currentUser ? html`<a href="#/profile/${currentUser.username}">My Profile</a>` : ''}
+        <a href="#/" class="nav-icon-button" title="Home"><img src="/home-icon.png" alt="Home"></a>
+        ${currentUser ? html`<a href="#/create" class="nav-icon-button" title="Create Post"><img src="/create-icon.png" alt="Create Post"></a>` : ''}
+        ${currentUser ? html`<a href="#/profile/${currentUser.username}" class="nav-icon-button" title="My Profile"><img src="/profile-icon.png" alt="My Profile"></a>` : ''}
     </nav>
     <div class="user-info">
         ${currentUser ? html`
@@ -33,7 +33,7 @@ const HeaderTemplate = () => html`
                 <span>${starBalance}</span>
             </div>
             <a href="#/profile/${currentUser.username}">
-                <img class="user-avatar" src="${`https://images.websim.com/avatar/${currentUser.username}`}" alt="${currentUser.username}">
+                <img class="user-avatar" src="${currentUser.avatar_url || `https://images.websim.com/avatar/${currentUser.username}`}" alt="${currentUser.username}">
                 <span>@${currentUser.username}</span>
             </a>
         ` : html`
@@ -47,9 +47,7 @@ export async function Header() {
     headerEl.className = 'header';
     
     currentUser = await getCurrentUser();
-    if(currentUser) {
-        await updateBalance();
-    }
+    await updateBalance();
     
     render(HeaderTemplate(), headerEl);
     
