@@ -316,6 +316,28 @@ input[type="number"] {
     max-width: 700px;
     margin: 2rem auto;
 }
+.post-type-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+.post-type-button {
+    flex: 1;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.post-type-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
 .create-post-container h2 {
     margin-top: 0;
 }

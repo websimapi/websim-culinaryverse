@@ -93,6 +93,7 @@ export async function createPost(postData) {
             title: postData.title,
             description: postData.description,
             image_url: postData.image_url,
+            type: postData.type,
         });
         return post;
     } catch(error) {

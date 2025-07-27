@@ -3,8 +3,9 @@
     "schema": {
       "posts_v1": {
         "title": { "type": "text", "description": "The title of the post." },
-        "description": { "type": "text", "description": "The content of the post in Markdown." },
-        "image_url": { "type": "text", "description": "URL for the post's cover image." }
+        "description": { "type": "text", "description": "The content of the post in Markdown. For recipes, this holds structured markdown for ingredients and instructions." },
+        "image_url": { "type": "text", "description": "URL for the post's cover image." },
+        "type": { "type": "text", "description": "The type of post, e.g., 'blog' or 'recipe'." }
       },
       "star_balances_v1": {
         "id": { "type": "text", "description": "User ID, serves as the primary key." },
@@ -13,4 +14,3 @@
     }
   }
 }
-
