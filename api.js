@@ -1,16 +1,14 @@
-import { WebsimSocket } from '@websim/websim-socket';
-
-const room = new WebsimSocket();
-
 const API_BASE = '/api/v1';
 
+export const room = new WebsimSocket();
+
 export async function getCurrentUser() {
-    return window.websim.getUser();
+    return await window.websim.getCurrentUser();
 }
 
 export async function getUser(username) {
     try {
-        const res = await fetch(`/api/v1/users/${username}`);
+        const res = await fetch(`${API_BASE}/users/${username}`);
         if (!res.ok) throw new Error('User not found');
         const data = await res.json();
         return data.user;
@@ -20,136 +18,78 @@ export async function getUser(username) {
     }
 }
 
-export async function getFeed() {
-    try {
-        const postsWithAuthors = await room.query(`
-            SELECT p.id, p.title, p.description, p.image_url, p.created_at, p.user_id, u.username, u.avatar_url
-            FROM public.posts_v1 p
-            JOIN public.user u ON p.user_id = u.id
-            ORDER BY p.created_at DESC
-            LIMIT 20
-        `);
-        
-        return postsWithAuthors.map(p => ({
-            post: {
-                id: p.id,
-                title: p.title,
-                description: p.description,
-                image_url: p.image_url,
-            },
-            author: { id: p.user_id, username: p.username, avatar_url: p.avatar_url }
-        }));
-    } catch (error) {
-        console.error('Failed to fetch feed:', error);
-        return [];
-    }
+// --- NEW DB-BASED POST FUNCTIONS ---
+export function getDBPosts() {
+    return window.room.collection('post_v1').getList().reverse();
 }
 
-export async function getUserPosts(username) {
-    try {
-        const user = await getUser(username);
-        if (!user) return [];
-
-        const posts = await room.collection('posts_v1').filter({ user_id: user.id }).getList();
-        return posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    } catch (error) {
-        console.error('Failed to fetch user posts:', error);
-        return [];
-    }
+export function getDBUserPosts(username) {
+    return window.room.collection('post_v1').filter({ username }).getList().reverse();
 }
 
-export async function getPostDetails(postId) {
-     try {
-        const results = await room.query(`
-            SELECT p.id, p.title, p.description, p.image_url, p.created_at, p.user_id, u.username, u.avatar_url
-            FROM public.posts_v1 p
-            JOIN public.user u ON p.user_id = u.id
-            WHERE p.id = $1
-        `, [postId]);
-        
-        if (results.length > 0) {
-            const p = results[0];
-            return {
-                id: p.id,
-                title: p.title,
-                description: p.description,
-                image_url: p.image_url,
-                created_by: { id: p.user_id, username: p.username, avatar_url: p.avatar_url }
-            };
-        }
-        return null;
-    } catch (error) {
-        console.error('Failed to fetch post details:', error);
-        return null;
-    }
+export function getDBPostById(postId) {
+    const posts = window.room.collection('post_v1').filter({ id: postId }).getList();
+    return posts.length > 0 ? posts[0] : null;
 }
 
-export async function createPost(postData) {
+export async function createPost({ title, content, imageUrl }) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) throw new Error("User not logged in");
-        
-        const post = await room.collection('posts_v1').create({
-            title: postData.title,
-            description: postData.description,
-            image_url: postData.image_url,
+        const post = await window.room.collection('post_v1').create({
+            title,
+            content,
+            imageUrl,
         });
         return post;
-    } catch(error) {
-        console.error("Failed to create post:", error);
+    } catch (e) {
+        console.error("Failed to create post", e);
         return null;
     }
 }
 
-// --- Star Currency System using websim database ---
+// --- Star Currency System using websim records ---
 
 const STARTER_STARS = 100;
 
-async function ensureUserBalance(userId) {
-    const existing = await room.collection('star_balances_v1').filter({ id: userId }).getList();
-    if (existing.length === 0) {
-        await room.collection('star_balances_v1').upsert({
-            id: userId,
-            balance: STARTER_STARS
+export async function getStarBalance(username) {
+    if (!username) return 0;
+    
+    const balances = window.room.collection('star_balance_v1').filter({ username: username }).getList();
+    if (balances.length > 0) {
+        return balances[0].balance;
+    } else {
+        // Create initial balance for new user
+        await window.room.collection('star_balance_v1').create({
+            balance: STARTER_STARS,
+            username: username
         });
+        return STARTER_STARS;
     }
 }
 
-export async function getStarBalance(userId) {
-    if (!userId) return 0;
-    
-    await ensureUserBalance(userId);
-    const balanceRecords = await room.collection('star_balances_v1').filter({ id: userId }).getList();
-    return balanceRecords.length > 0 ? balanceRecords[0].balance : 0;
-}
-
-export async function giveStars(fromUserId, toUserId, amount) {
-    if (!fromUserId || !toUserId || fromUserId === toUserId || amount <= 0) {
+export async function giveStars(fromUsername, toUsername, amount) {
+    if (!fromUsername || !toUsername || fromUsername === toUsername || amount <= 0) {
         return { success: false, message: 'Invalid transaction.' };
     }
 
-    await ensureUserBalance(fromUserId);
-    await ensureUserBalance(toUserId);
+    const fromBalanceRecord = window.room.collection('star_balance_v1').filter({ username: fromUsername }).getList()[0];
+    const toBalanceRecord = window.room.collection('star_balance_v1').filter({ username: toUsername }).getList()[0];
 
-    const fromBalanceRecords = await room.collection('star_balances_v1').filter({ id: fromUserId }).getList();
-    const fromBalanceRecord = fromBalanceRecords[0];
+    if (!fromBalanceRecord) {
+         return { success: false, message: 'Sender balance not found.' };
+    }
 
     if (fromBalanceRecord.balance < amount) {
         return { success: false, message: 'Not enough stars.' };
     }
     
-    const toBalanceRecords = await room.collection('star_balances_v1').filter({ id: toUserId }).getList();
-    const toBalanceRecord = toBalanceRecords[0];
-
-    await room.collection('star_balances_v1').upsert({
-        id: fromUserId,
-        balance: fromBalanceRecord.balance - amount,
-    });
+    await window.room.collection('star_balance_v1').update(fromBalanceRecord.id, { balance: fromBalanceRecord.balance - amount });
     
-    await room.collection('star_balances_v1').upsert({
-        id: toUserId,
-        balance: toBalanceRecord.balance + amount,
-    });
+    if (toBalanceRecord) {
+        await window.room.collection('star_balance_v1').update(toBalanceRecord.id, { balance: toBalanceRecord.balance + amount });
+    } else {
+        // This case should be rare if getStarBalance is called on profile view
+        await window.room.collection('star_balance_v1').create({ balance: STARTER_STARS + amount, username: toUsername });
+    }
     
     return { success: true, newBalance: fromBalanceRecord.balance - amount };
 }

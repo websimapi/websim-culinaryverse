@@ -6,7 +6,7 @@ let starBalance = 0;
 
 async function updateBalance() {
     if (currentUser) {
-        starBalance = await getStarBalance(currentUser.id);
+        starBalance = await getStarBalance(currentUser.username); // Use username for consistency
         const headerEl = document.querySelector('.header');
         if (headerEl) {
            render(HeaderTemplate(), headerEl);
@@ -23,7 +23,7 @@ const HeaderTemplate = () => html`
     <a href="#/" class="header-logo">CulinaryVerse</a>
     <nav class="header-nav">
         <a href="#/">Home</a>
-        ${currentUser ? html`<a href="#/create">Create Post</a>` : ''}
+        <a href="#/create">New Post</a>
         ${currentUser ? html`<a href="#/profile/${currentUser.username}">My Profile</a>` : ''}
     </nav>
     <div class="user-info">
@@ -33,7 +33,7 @@ const HeaderTemplate = () => html`
                 <span>${starBalance}</span>
             </div>
             <a href="#/profile/${currentUser.username}">
-                <img class="user-avatar" src="${currentUser.avatar_url || `https://images.websim.com/avatar/${currentUser.username}`}" alt="${currentUser.username}">
+                <img class="user-avatar" src="${`https://images.websim.com/avatar/${currentUser.username}`}" alt="${currentUser.username}">
                 <span>@${currentUser.username}</span>
             </a>
         ` : html`
@@ -47,7 +47,9 @@ export async function Header() {
     headerEl.className = 'header';
     
     currentUser = await getCurrentUser();
-    await updateBalance();
+    if(currentUser) {
+        await updateBalance();
+    }
     
     render(HeaderTemplate(), headerEl);
     

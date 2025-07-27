@@ -19,7 +19,8 @@ const routes = {
 const router = new Router(routes);
 
 async function renderContent() {
-    const { component, params } = router.match(location.hash.slice(1));
+    const path = location.hash.slice(1) || '/';
+    const { component, params } = router.match(path);
     if (component) {
         render(await component(params), mainEl);
     } else {
@@ -29,10 +30,4 @@ async function renderContent() {
 
 async function init() {
     render(await Header(), appEl);
-    appEl.appendChild(mainEl);
 
-    window.addEventListener('hashchange', renderContent);
-    renderContent(); // Initial render
-}
-
-init();
