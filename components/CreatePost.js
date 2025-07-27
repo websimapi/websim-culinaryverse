@@ -33,6 +33,36 @@ export function CreatePost() {
         }
     };
 
+    const handleUploadClick = (e) => {
+        e.preventDefault();
+        // The file input is inside the same wrapper, but hidden.
+        const fileInput = e.currentTarget.previousElementSibling;
+        fileInput.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadButton = e.currentTarget.nextElementSibling;
+        const imageUrlInput = document.getElementById('image_url');
+        
+        const originalButtonContent = uploadButton.innerHTML;
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = 'Uploading...';
+
+        try {
+            const url = await window.websim.upload(file);
+            imageUrlInput.value = url;
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('Failed to upload image. Please try again or enter a URL manually.');
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.innerHTML = originalButtonContent;
+        }
+    };
+
     return html`
         <div class="create-post-container">
             <h2>Create a new post</h2>
@@ -43,7 +73,14 @@ export function CreatePost() {
                 </div>
                 <div class="form-group">
                     <label for="image_url">Image URL (optional)</label>
-                    <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.png">
+                    <div class="image-upload-wrapper">
+                        <input type="url" id="image_url" name="image_url" placeholder="Enter URL or upload an image">
+                        <input type="file" @change=${handleFileChange} style="display: none;" accept="image/*">
+                        <button class="upload-button" @click=${handleUploadClick}>
+                            <img src="/upload-icon.png" alt="Upload Icon" />
+                            Upload
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="description">Content (Markdown supported)</label>
@@ -54,4 +91,3 @@ export function CreatePost() {
         </div>
     `;
 }
-
