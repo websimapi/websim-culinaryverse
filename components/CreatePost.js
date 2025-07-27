@@ -4,6 +4,8 @@ import { createPost } from 'app/api.js';
 export function CreatePost() {
     const container = document.createElement('div');
     let postType = 'blog'; // 'blog' or 'recipe'
+    let ingredients = [''];
+    let instructions = [''];
 
     const setPostType = (newType) => {
         postType = newType;
@@ -21,16 +23,16 @@ export function CreatePost() {
         if (postType === 'blog') {
             description = formData.get('description');
         } else {
-            const ingredients = formData.get('ingredients')?.split('\n').filter(i => i.trim() !== '');
-            const instructions = formData.get('instructions')?.split('\n').filter(i => i.trim() !== '');
+            const finalIngredients = ingredients.map(i => i.trim()).filter(i => i !== '');
+            const finalInstructions = instructions.map(i => i.trim()).filter(i => i !== '');
             
-            if (!ingredients || ingredients.length === 0 || !instructions || instructions.length === 0) {
+            if (finalIngredients.length === 0 || finalInstructions.length === 0) {
                  alert('Ingredients and instructions are required for a recipe!');
                  return;
             }
 
-            const ingredientsMd = ingredients.map(i => `- ${i.trim()}`).join('\n');
-            const instructionsMd = instructions.map((step, index) => `${index + 1}. ${step.trim()}`).join('\n');
+            const ingredientsMd = finalIngredients.map(i => `- ${i}`).join('\n');
+            const instructionsMd = finalInstructions.map((step, index) => `${index + 1}. ${step}`).join('\n');
 
             description = `### Ingredients\n\n${ingredientsMd}\n\n### Instructions\n\n${instructionsMd}`;
         }
@@ -87,6 +89,61 @@ export function CreatePost() {
         }
     };
 
+    // --- Dynamic List Handlers ---
+    const updateListItem = (list, index, value) => {
+        list[index] = value;
+    };
+
+    const addListItem = (list, index) => {
+        list.splice(index + 1, 0, '');
+        renderComponent();
+    };
+
+    const removeListItem = (list, index) => {
+        if (list.length > 1) {
+            list.splice(index, 1);
+        } else {
+            list[index] = ''; // Clear if it's the last one
+        }
+        renderComponent();
+    };
+
+    const handleKeyDown = (e, list, index) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addListItem(list, index);
+            
+            // Focus new element - needs a small delay for DOM to update
+            setTimeout(() => {
+                const nextInput = e.target.closest('.list-item-input').nextElementSibling?.querySelector('input');
+                nextInput?.focus();
+            }, 0);
+        }
+    };
+
+    const renderListComponent = (list, listName, placeholder, isOrdered) => html`
+        <div class="form-group">
+            <label>${listName.charAt(0).toUpperCase() + listName.slice(1)}</label>
+            <div id="${listName}-list">
+                ${list.map((item, index) => html`
+                    <div class="list-item-input">
+                        <span>${isOrdered ? `${index + 1}.` : '-'}</span>
+                        <input
+                            type="text"
+                            .value=${item}
+                            placeholder=${placeholder}
+                            @input=${e => updateListItem(list, index, e.target.value)}
+                            @keydown=${e => handleKeyDown(e, list, index)}
+                        >
+                        <button type="button" class="remove-item-btn" @click=${() => removeListItem(list, index)} title="Remove item">×</button>
+                    </div>
+                `)}
+            </div>
+            <button type="button" class="add-item-btn" @click=${() => addListItem(list, list.length - 1)}>+ Add ${listName.slice(0, -1)}</button>
+        </div>
+    `;
+
+
     const renderComponent = () => {
         const template = html`
             <div class="create-post-container">
@@ -120,14 +177,8 @@ export function CreatePost() {
                             <textarea id="description" name="description" rows="15" required></textarea>
                         </div>
                     ` : html`
-                        <div class="form-group">
-                            <label for="ingredients">Ingredients (one per line)</label>
-                            <textarea id="ingredients" name="ingredients" rows="10" placeholder="e.g., 1 cup flour" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="instructions">Instructions (one step per line)</label>
-                            <textarea id="instructions" name="instructions" rows="15" placeholder="e.g., Mix all ingredients" required></textarea>
-                        </div>
+                        ${renderListComponent(ingredients, 'ingredients', 'e.g., 1 cup flour', false)}
+                        ${renderListComponent(instructions, 'instructions', 'e.g., Mix all ingredients', true)}
                     `}
 
                     <button type="submit">Publish Post</button>

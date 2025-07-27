@@ -197,6 +197,7 @@ img {
 .profile-header .user-avatar {
     width: 120px;
     height: 120px;
+    flex-shrink: 0;
 }
 .profile-info h1 {
     margin: 0;
@@ -220,6 +221,39 @@ img {
 }
 .profile-posts-grid .post-card-content {
     padding: 1rem;
+}
+
+/* List item input for Create Post */
+.list-item-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.list-item-input input {
+    flex-grow: 1;
+}
+.remove-item-btn, .add-item-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-light-color);
+    cursor: pointer;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    padding: 0;
+    line-height: 1;
+}
+.remove-item-btn:hover, .add-item-btn:hover {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+.add-item-btn {
+    margin-top: 0.5rem;
 }
 
 /* Single Post View */
@@ -388,12 +422,48 @@ input[type="number"] {
 }
 
 /* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .profile-stats {
+        justify-content: center;
+    }
+    .post-card-image {
+        height: 250px;
+    }
+    .post-view-image {
+        height: 300px;
+    }
+}
+
 @media (max-width: 600px) {
     .header-logo {
         display: none;
     }
 
     .header {
-        padding: 1rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    main {
+        margin: 1rem auto;
+    }
+    
+    .create-post-container, .post-view-container, .profile-header {
+        padding: 1.5rem;
+    }
+
+    .post-view-title {
+        font-size: 2rem;
+    }
+
+    .post-card-image {
+        height: 200px;
+    }
+
+    .post-view-image {
+        height: 220px;
     }
 }
